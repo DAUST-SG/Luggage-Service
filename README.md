@@ -2,12 +2,12 @@
 
 A 2-page system for collecting student luggage pickup locations and clustering them into delivery trucks. Designed for end-of-semester moveout — students register their bags, fridges, monitors, etc. and a truck drops everything at relay points near groups of students.
 
-- **`shuttle-signup.html`** — public form (French). Each student drops a pin, enters their info, and selects luggage quantities across 7 categories (small/medium/large bags, monitors, small/medium fridges, other).
+- **`shuttle-signup.html`** — public form (English). Each student drops a pin, enters their info, and selects luggage quantities across 7 categories (small/medium/large bags, monitors, small/medium fridges, other).
 - **`shuttle-dispatch.html`** — admin dashboard (English). Loads signups, runs k-means clustering, shows the map + per-truck luggage breakdown, exports CSV.
 - **`convex/schema.addition.ts`** — the new table to add to your existing schema.
 - **`convex/shuttleSignups.ts`** — Convex functions (create/list/remove).
 
-Backend: `decisive-whale-691.convex.cloud` (your existing deployment).
+Backend: `accurate-stoat-455.eu-west-1.convex.cloud` (your existing deployment).
 
 ---
 
@@ -27,7 +27,7 @@ This deploys the schema + functions. You should see `shuttleSignups:create`, `sh
 
 **d.** Quick smoke test:
 ```bash
-curl -X POST https://decisive-whale-691.convex.cloud/api/mutation \
+curl -X POST https://accurate-stoat-455.eu-west-1.convex.cloud/api/mutation \
   -H "Content-Type: application/json" \
   -d '{"path":"shuttleSignups:create","args":{"name":"Test","phone":"771234567","lat":14.74,"lng":-17.15,"luggage":{"smallBags":1,"mediumBags":2,"largeBags":0,"monitors":1,"smallFridges":0,"mediumFridges":0,"other":0},"eventLabel":"daust-impact-2026"},"format":"json"}'
 ```
@@ -51,7 +51,9 @@ If you want a custom domain (e.g. `bagages.daustsg.com`), point a CNAME at which
 
 ## 3. Run the dispatch dashboard
 
-Open `shuttle-dispatch.html` directly in your browser — it works as a local file. Or host it privately (it has no auth, so don't put it on a public URL).
+Open `shuttle-dispatch.html` directly in your browser — it works as a local file. Or host it privately (it has a password gate, but still best kept private).
+
+The default passphrase is **`daustsg2026`**.
 
 It auto-refreshes every 30 seconds.
 
@@ -62,7 +64,7 @@ It auto-refreshes every 30 seconds.
 Both HTML files have a `CONFIG` block at the top of their `<script>`. Change `EVENT_LABEL` to a new string for each event (e.g. `graduation-2026`, `freshers-week-2026`) — the dispatch page will only show signups for the matching label, so multiple events can coexist in the same table.
 
 ```js
-const CONVEX_URL = 'https://decisive-whale-691.convex.cloud';
+const CONVEX_URL = 'https://accurate-stoat-455.eu-west-1.convex.cloud';
 const EVENT_LABEL = 'daust-impact-2026';
 ```
 
@@ -94,7 +96,7 @@ const EVENT_LABEL = 'daust-impact-2026';
 To wipe signups for an event without dropping the table:
 
 ```bash
-curl -X POST https://decisive-whale-691.convex.cloud/api/mutation \
+curl -X POST https://accurate-stoat-455.eu-west-1.convex.cloud/api/mutation \
   -H "Content-Type: application/json" \
   -d '{"path":"shuttleSignups:clearEvent","args":{"eventLabel":"daust-impact-2026"},"format":"json"}'
 ```
