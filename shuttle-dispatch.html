@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Luggage Dispatch — DAUST Student Government</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --bg:           #16110d;
+      --surface:      #221a14;
+      --surface-2:    #2e241c;
+      --surface-3:    #3a2e24;
+      --line:         #443a30;
+      --line-soft:    #332a22;
+      --text:         #f6efe2;
+      --text-dim:     #a89888;
+      --text-faint:   #6b5c4e;
+      --terra:        #ff7a55;
+      --terra-deep:   #c8533a;
+      --teal:         #5dd6e6;
+      --gold:         #ffc857;
+      --ok:           #6affb8;
+      --err:          #ff4d6d;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 14px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-mark {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--terra);
+      box-shadow: 0 0 12px var(--terra);
+    }
+    .brand-text {
+      font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500;
+      font-variation-settings: "opsz" 80;
+    }
+    .brand-text em { font-style: italic; color: var(--terra); font-weight: 500; }
+
+    .header-stats {
+      display: flex; gap: 22px; align-items: center;
+    }
+    .stat {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--text-dim);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .stat b {
+      display: block; color: var(--text);
+      font-size: 18px; font-weight: 600; margin-top: 2px;
+      letter-spacing: 0;
+    }
+
+    .header-actions { display: flex; gap: 8px; }
+    .btn {
+      padding: 8px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 7px;
+      font-family: inherit; font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: background 100ms, border-color 100ms;
+    }
+    .btn:hover { background: var(--surface-3); border-color: var(--terra); }
+    .btn.primary { background: var(--terra); border-color: var(--terra); color: var(--bg); font-weight: 600; }
+    .btn.primary:hover { background: var(--terra-deep); border-color: var(--terra-deep); color: var(--text); }
+
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      overflow: hidden;
+    }
+
+    aside {
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      background: var(--surface);
+    }
+    aside::-webkit-scrollbar { width: 8px; }
+    aside::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+    aside::-webkit-scrollbar-track { background: var(--surface); }
+
+    .panel {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .panel-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-faint);
+      margin-bottom: 12px;
+    }
+
+    .ctrl-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .ctrl-row:last-child { margin-bottom: 0; }
+    .ctrl-label {
+      font-size: 13px; color: var(--text-dim);
+      flex: 1;
+    }
+    .ctrl-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px; font-weight: 600; color: var(--text);
+      min-width: 32px; text-align: right;
+    }
+    input[type="range"] {
+      flex: 1.5; margin: 0 12px;
+      -webkit-appearance: none; appearance: none;
+      background: transparent;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px; background: var(--surface-3); border-radius: 2px;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 4px; background: var(--surface-3); border-radius: 2px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--terra); cursor: pointer;
+      margin-top: -7px;
+      box-shadow: 0 0 0 2px var(--bg);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--terra); cursor: pointer; border: none;
+      box-shadow: 0 0 0 2px var(--bg);
+    }
+    input[type="number"] {
+      width: 80px; padding: 6px 8px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      text-align: right;
+    }
+    input[type="number"]:focus { outline: none; border-color: var(--terra); }
+
+    .clusters .empty {
+      padding: 30px 20px; text-align: center;
+      color: var(--text-faint); font-size: 13px;
+      font-family: 'Fraunces', serif; font-style: italic;
+    }
+
+    .cluster-card {
+      border-bottom: 1px solid var(--line-soft);
+      padding: 14px 20px;
+      cursor: pointer;
+      transition: background 100ms;
+    }
+    .cluster-card:hover { background: var(--surface-2); }
+    .cluster-card.warn { border-left: 3px solid var(--gold); padding-left: 17px; }
+
+    .cluster-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 6px;
+    }
+    .cluster-swatch {
+      width: 14px; height: 14px; border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .cluster-name {
+      font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600;
+      flex: 1;
+    }
+    .cluster-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--text-dim);
+    }
+    .cluster-count.over { color: var(--gold); }
+    .cluster-pickup {
+      font-size: 12px; color: var(--text-dim);
+      margin-left: 24px; margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .cluster-pickup b { color: var(--text); font-weight: 500; }
+    .cluster-breakdown {
+      font-size: 12px; color: var(--text-dim);
+      margin-left: 24px; margin-bottom: 2px;
+      letter-spacing: 0.02em;
+    }
+
+    .cluster-passengers {
+      display: none;
+      margin-left: 24px; margin-top: 8px;
+      padding-top: 8px; border-top: 1px solid var(--line-soft);
+    }
+    .cluster-card.open .cluster-passengers { display: block; }
+    .passenger {
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .passenger-top {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .passenger-name { color: var(--text); }
+    .passenger-phone {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--text-dim);
+    }
+    .passenger-luggage {
+      font-size: 12px; color: var(--text-faint);
+      margin-top: 1px;
+    }
+
+    .map-area { position: relative; }
+    #map {
+      width: 100%; height: 100%;
+      background: var(--bg);
+    }
+    #map .leaflet-control-zoom a {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--line);
+    }
+    #map .leaflet-control-attribution {
+      background: rgba(34,26,20,0.85);
+      color: var(--text-dim);
+    }
+    #map .leaflet-control-attribution a { color: var(--terra); }
+
+    .loading {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(22,17,13,0.7);
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+    .loading.hidden { display: none; }
+    .loading-text {
+      font-family: 'Fraunces', serif; font-style: italic;
+      color: var(--text-dim);
+    }
+
+    .cluster-pin {
+      width: 22px; height: 22px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      border: 2px solid var(--bg);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .centroid-pin {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 0 2px currentColor, 0 0 16px currentColor;
+    }
+
+    /* AUTH GATE */
+    .auth-gate {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .auth-gate.hidden { display: none; }
+    .auth-box {
+      width: 360px; max-width: 90vw;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+    }
+    .auth-box .brand-mark {
+      width: 12px; height: 12px; border-radius: 50%; background: var(--terra);
+      box-shadow: 0 0 16px var(--terra);
+      margin: 0 auto 16px;
+    }
+    .auth-box h2 {
+      font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px;
+      margin: 0 0 6px;
+      font-variation-settings: "opsz" 80;
+    }
+    .auth-box h2 em { font-style: italic; color: var(--terra); font-weight: 500; }
+    .auth-box p {
+      color: var(--text-dim); font-size: 13px; margin: 0 0 20px;
+    }
+    .auth-box input[type="password"] {
+      width: 100%; padding: 12px 14px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--line); border-radius: 10px;
+      font-family: inherit; font-size: 15px;
+      transition: border-color 120ms, box-shadow 120ms;
+    }
+    .auth-box input[type="password"]:focus {
+      outline: none; border-color: var(--terra);
+      box-shadow: 0 0 0 3px rgba(255,122,85,0.2);
+    }
+    .auth-box .auth-btn {
+      width: 100%; margin-top: 12px; padding: 12px;
+      background: var(--terra); color: var(--bg); border: none;
+      border-radius: 10px;
+      font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px;
+      cursor: pointer;
+      transition: background 120ms;
+    }
+    .auth-box .auth-btn:hover { background: var(--terra-deep); }
+    .auth-error {
+      color: var(--err); font-size: 13px; margin-top: 10px;
+      display: none;
+    }
+    .auth-error.show { display: block; }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; grid-template-rows: 300px 1fr; }
+      aside { border-right: none; border-bottom: 1px solid var(--line); }
+      header { padding: 10px 14px; flex-wrap: wrap; gap: 10px; }
+      .brand-text { font-size: 15px; }
+      .header-stats { gap: 14px; }
+      .stat b { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- AUTH GATE -->
+  <div class="auth-gate" id="auth-gate">
+    <div class="auth-box">
+      <div class="brand-mark"></div>
+      <h2>Luggage <em>Dispatch</em></h2>
+      <p>Admin access only. Enter the passphrase to continue.</p>
+      <input type="password" id="auth-input" placeholder="Passphrase" autocomplete="off" />
+      <button class="auth-btn" id="auth-btn">Unlock</button>
+      <div class="auth-error" id="auth-error">Incorrect passphrase. Try again.</div>
+    </div>
+  </div>
+
+  <div class="app" id="app" style="display:none;">
+    <header>
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-text">Luggage <em>Dispatch</em></span>
+      </div>
+      <div class="header-stats">
+        <div class="stat">Signups<b id="stat-total">0</b></div>
+        <div class="stat">Trucks<b id="stat-trucks">0</b></div>
+        <div class="stat">Volume / truck<b id="stat-avg">0 L</b></div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" id="refresh-btn">↻ Refresh</button>
+        <button class="btn primary" id="export-btn">↓ Export CSV</button>
+      </div>
+    </header>
+
+    <main>
+      <aside>
+        <div class="panel">
+          <div class="panel-title">Clustering controls</div>
+
+          <div class="ctrl-row">
+            <span class="ctrl-label">Number of trucks</span>
+            <input type="range" id="k-slider" min="2" max="12" value="4" />
+            <span class="ctrl-value" id="k-value">4</span>
+          </div>
+
+          <div class="ctrl-row">
+            <span class="ctrl-label">Max volume / truck (L)</span>
+            <input type="number" id="capacity" min="0" max="20000" value="4000" />
+          </div>
+
+          <div class="ctrl-row" style="margin-top:14px;">
+            <button class="btn" id="recluster-btn" style="flex:1; justify-content:center;">
+              Re-cluster
+            </button>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:0; border-bottom:none;">
+          <div class="panel-title" style="padding:18px 20px 0;">Trucks</div>
+          <div class="clusters" id="clusters">
+            <div class="empty">No signups yet.<br/>Share the signup link.</div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="map-area">
+        <div id="map"></div>
+        <div class="loading" id="loading">
+          <span class="loading-text">Loading signups…</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // CONFIG
+    // ─────────────────────────────────────────────────────────────────────────
+    const CONVEX_URL = 'https://decisive-whale-691.convex.cloud';
+    const EVENT_LABEL = 'daust-impact-2026';
+
+    const VOLUME_LITERS = {
+      smallBags: 25,
+      mediumBags: 55,
+      largeBags: 90,
+      monitors: 40,
+      smallFridges: 80,
+      mediumFridges: 200,
+      other: 35,
+    };
+
+    const LUGGAGE_DISPLAY = [
+      { key: 'smallBags',     emoji: '🎒' },
+      { key: 'mediumBags',    emoji: '🧳' },
+      { key: 'largeBags',     emoji: '🛄' },
+      { key: 'monitors',      emoji: '🖥️' },
+      { key: 'smallFridges',  emoji: '🧊' },
+      { key: 'mediumFridges', emoji: '❄️' },
+      { key: 'other',         emoji: '📦' },
+    ];
+
+    function emptyLuggage() {
+      return { smallBags: 0, mediumBags: 0, largeBags: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
+    }
+    function luggageOf(m) { return { ...emptyLuggage(), ...(m.luggage || {}) }; }
+    function itemsOf(m)   { const l = luggageOf(m); return LUGGAGE_DISPLAY.reduce((s, x) => s + l[x.key], 0); }
+    function volumeOf(m)  { const l = luggageOf(m); return LUGGAGE_DISPLAY.reduce((s, x) => s + l[x.key] * VOLUME_LITERS[x.key], 0); }
+    function clusterVolume(c) { return c.members.reduce((s, m) => s + volumeOf(m), 0); }
+    function clusterItems(c)  { return c.members.reduce((s, m) => s + itemsOf(m), 0); }
+
+    function formatVolume(L) {
+      return L >= 1000 ? (L / 1000).toFixed(1) + ' m³' : Math.round(L) + ' L';
+    }
+
+    function luggageSummary(m) {
+      const l = luggageOf(m);
+      return LUGGAGE_DISPLAY.filter(x => l[x.key] > 0).map(x => `${x.emoji} ${l[x.key]}`).join('  ');
+    }
+
+    const PALETTE = [
+      '#ff7a55', '#5dd6e6', '#ffc857', '#95e06c',
+      '#c490e4', '#ff6ec4', '#6affb8', '#ffaf65',
+      '#b8b8ff', '#ff4d6d', '#7cd5b6', '#e8b4ff',
+    ];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────────────────
+    let signups = [];
+    let clusters = [];
+    let layers = [];
+    let placeNameCache = {};
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MAP SETUP
+    // ─────────────────────────────────────────────────────────────────────────
+    const map = L.map('map', { zoomControl: true }).setView([14.74, -17.15], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap, © CARTO'
+    }).addTo(map);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DATA LOADING
+    // ─────────────────────────────────────────────────────────────────────────
+    async function loadSignups(stableInit = false) {
+      document.getElementById('loading').classList.remove('hidden');
+      try {
+        const res = await fetch(`${CONVEX_URL}/api/query`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            path: 'shuttleSignups:list',
+            args: { eventLabel: EVENT_LABEL },
+            format: 'json',
+          }),
+        });
+        const data = await res.json();
+        if (data.status !== 'success') throw new Error(data.errorMessage || 'Query failed');
+        signups = data.value || [];
+        document.getElementById('stat-total').textContent = signups.length;
+        runClustering(stableInit);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to load signups: ' + err.message);
+      } finally {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CLUSTERING — k-means with k-means++ init + volume-based rebalancing
+    // ─────────────────────────────────────────────────────────────────────────
+
+    function dist(a, b) {
+      const R = 6371;
+      const toRad = d => d * Math.PI / 180;
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const s = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(s));
+    }
+
+    function centroidOf(points) {
+      const lat = points.reduce((s, p) => s + p.lat, 0) / points.length;
+      const lng = points.reduce((s, p) => s + p.lng, 0) / points.length;
+      return { lat, lng };
+    }
+
+    function initCentroids(points, k) {
+      if (points.length === 0) return [];
+      const centroids = [points[Math.floor(Math.random() * points.length)]];
+      while (centroids.length < k) {
+        const distances = points.map(p =>
+          Math.min(...centroids.map(c => dist(p, c) ** 2))
+        );
+        const total = distances.reduce((a, b) => a + b, 0);
+        if (total === 0) {
+          centroids.push(points[Math.floor(Math.random() * points.length)]);
+          continue;
+        }
+        let r = Math.random() * total;
+        for (let i = 0; i < points.length; i++) {
+          r -= distances[i];
+          if (r <= 0) { centroids.push(points[i]); break; }
+        }
+      }
+      return centroids.map(c => ({ lat: c.lat, lng: c.lng }));
+    }
+
+    function kmeans(points, k, maxIter = 50, seedCentroids = null) {
+      if (points.length === 0) return [];
+      k = Math.min(k, points.length);
+      let centroids;
+      if (seedCentroids && seedCentroids.length === k) {
+        centroids = seedCentroids.map(c => ({ lat: c.lat, lng: c.lng }));
+      } else {
+        centroids = initCentroids(points, k);
+      }
+      let assignments = new Array(points.length).fill(0);
+
+      for (let iter = 0; iter < maxIter; iter++) {
+        let changed = false;
+        for (let i = 0; i < points.length; i++) {
+          let best = 0, bestD = Infinity;
+          for (let j = 0; j < k; j++) {
+            const d = dist(points[i], centroids[j]);
+            if (d < bestD) { bestD = d; best = j; }
+          }
+          if (assignments[i] !== best) { assignments[i] = best; changed = true; }
+        }
+        if (!changed) break;
+        for (let j = 0; j < k; j++) {
+          const members = points.filter((_, i) => assignments[i] === j);
+          if (members.length > 0) centroids[j] = centroidOf(members);
+        }
+      }
+
+      const out = [];
+      for (let j = 0; j < k; j++) {
+        const members = points.filter((_, i) => assignments[i] === j);
+        if (members.length === 0) continue;
+        out.push({ centroid: centroids[j], members });
+      }
+      return out;
+    }
+
+    function rebalance(clusters, capacity) {
+      if (!capacity || capacity <= 0) return clusters;
+      let iterations = 0;
+      while (iterations < 100) {
+        const over = clusters.find(c => clusterVolume(c) > capacity);
+        if (!over) break;
+
+        let farIdx = 0, farD = -1;
+        over.members.forEach((m, i) => {
+          const d = dist(m, over.centroid);
+          if (d > farD) { farD = d; farIdx = i; }
+        });
+        const moving = over.members[farIdx];
+
+        let target = null, targetD = Infinity;
+        for (const c of clusters) {
+          if (c === over) continue;
+          if (clusterVolume(c) + volumeOf(moving) > capacity) continue;
+          const d = dist(moving, c.centroid);
+          if (d < targetD) { targetD = d; target = c; }
+        }
+
+        if (!target) break;
+
+        over.members.splice(farIdx, 1);
+        target.members.push(moving);
+        over.centroid = centroidOf(over.members);
+        target.centroid = centroidOf(target.members);
+        iterations++;
+      }
+      return clusters;
+    }
+
+    async function runClustering(useStableInit = false) {
+      const k = parseInt(document.getElementById('k-slider').value, 10);
+      const capacity = parseInt(document.getElementById('capacity').value, 10) || 0;
+
+      const seed = useStableInit && clusters.length === k
+        ? clusters.map(c => c.centroid)
+        : null;
+      let result = kmeans(signups, k, 50, seed);
+      result = rebalance(result, capacity);
+
+      result.forEach((c, i) => {
+        c.color = PALETTE[i % PALETTE.length];
+        c.name = `Truck ${String.fromCharCode(65 + i)}`;
+      });
+
+      clusters = result;
+
+      document.getElementById('stat-trucks').textContent = clusters.length;
+      const totalVolume = signups.reduce((s, m) => s + volumeOf(m), 0);
+      document.getElementById('stat-avg').textContent = clusters.length
+        ? formatVolume(Math.round(totalVolume / clusters.length))
+        : '0 L';
+
+      render();
+      lookupPlaceNames();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REVERSE GEOCODING (Nominatim — throttled, cached)
+    // ─────────────────────────────────────────────────────────────────────────
+    async function reverseGeocode(lat, lng) {
+      const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+      if (placeNameCache[key]) return placeNameCache[key];
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&accept-language=fr`,
+          { headers: { 'User-Agent': 'DAUST-Shuttle/1.0' } }
+        );
+        const data = await res.json();
+        const a = data.address || {};
+        const parts = [
+          a.suburb || a.neighbourhood || a.village || a.town || a.city_district,
+          a.city || a.county,
+        ].filter(Boolean);
+        const name = parts.length ? parts.join(', ') : 'Unknown area';
+        placeNameCache[key] = name;
+        return name;
+      } catch {
+        return 'Unknown area';
+      }
+    }
+
+    async function lookupPlaceNames() {
+      for (let i = 0; i < clusters.length; i++) {
+        const c = clusters[i];
+        const name = await reverseGeocode(c.centroid.lat, c.centroid.lng);
+        c.placeName = name;
+        renderClusterList();
+        await new Promise(r => setTimeout(r, 1100));
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RENDERING
+    // ─────────────────────────────────────────────────────────────────────────
+    function clearLayers() {
+      layers.forEach(l => map.removeLayer(l));
+      layers = [];
+    }
+
+    function render() {
+      clearLayers();
+      const capacity = parseInt(document.getElementById('capacity').value, 10) || 0;
+
+      clusters.forEach((c, ci) => {
+        c.members.forEach(m => {
+          const pin = L.divIcon({
+            className: '',
+            html: `<div class="cluster-pin" style="background:${c.color}"></div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 22],
+          });
+          const mkr = L.marker([m.lat, m.lng], { icon: pin }).addTo(map);
+          const items = itemsOf(m);
+          const vol = volumeOf(m);
+          const summary = luggageSummary(m);
+          const luggageLine = items > 0
+            ? `<div style="margin-top:4px;font-size:12px;color:#888;">${items} item${items !== 1 ? 's' : ''} · ${formatVolume(vol)}</div><div style="font-size:12px;margin-top:2px;">${summary}</div>`
+            : '';
+          mkr.bindPopup(`
+            <div style="font-family:Manrope,sans-serif;">
+              <div style="font-weight:600;font-size:14px;">${escapeHtml(m.name)}</div>
+              <div style="color:#666;font-size:12px;">${escapeHtml(m.phone)}</div>
+              ${m.neighborhood ? `<div style="color:#666;font-size:12px;margin-top:2px;">${escapeHtml(m.neighborhood)}</div>` : ''}
+              ${luggageLine}
+              <div style="margin-top:6px;font-size:12px;"><b style="color:${c.color}">${c.name}</b></div>
+            </div>
+          `);
+          layers.push(mkr);
+        });
+
+        const centroidPin = L.divIcon({
+          className: '',
+          html: `<div class="centroid-pin" style="background:${c.color}; color:${c.color}"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+        const cmarker = L.marker([c.centroid.lat, c.centroid.lng], {
+          icon: centroidPin,
+          zIndexOffset: 1000,
+        }).addTo(map);
+        cmarker.bindPopup(`
+          <div style="font-family:Manrope,sans-serif;">
+            <div style="font-weight:700;color:${c.color};font-size:14px;">${c.name} — Relay point</div>
+            <div style="font-size:12px;color:#666;margin-top:4px;">${c.members.length} people · ${formatVolume(clusterVolume(c))}</div>
+          </div>
+        `);
+        layers.push(cmarker);
+      });
+
+      if (signups.length > 0) {
+        const bounds = L.latLngBounds(signups.map(s => [s.lat, s.lng]));
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      }
+
+      renderClusterList();
+    }
+
+    function renderClusterList() {
+      const root = document.getElementById('clusters');
+      const capacity = parseInt(document.getElementById('capacity').value, 10) || 0;
+
+      if (clusters.length === 0) {
+        root.innerHTML = '<div class="empty">No signups yet.<br/>Share the signup link.</div>';
+        return;
+      }
+
+      root.innerHTML = clusters.map((c, i) => {
+        const vol = clusterVolume(c);
+        const over = capacity > 0 && vol > capacity;
+        const pickupLabel = c.placeName || `${c.centroid.lat.toFixed(4)}, ${c.centroid.lng.toFixed(4)}`;
+        const volLabel = formatVolume(vol) + (capacity > 0 ? ' / ' + formatVolume(capacity) : '');
+        const breakdown = LUGGAGE_DISPLAY
+          .map(x => {
+            const total = c.members.reduce((s, m) => s + luggageOf(m)[x.key], 0);
+            return total > 0 ? `${x.emoji} ${total}` : '';
+          })
+          .filter(Boolean)
+          .join('   ');
+
+        return `
+          <div class="cluster-card ${over ? 'warn' : ''}" data-idx="${i}">
+            <div class="cluster-head">
+              <div class="cluster-swatch" style="background:${c.color}"></div>
+              <div class="cluster-name">${c.name}</div>
+              <div class="cluster-count ${over ? 'over' : ''}">${c.members.length} people · ${volLabel}</div>
+            </div>
+            <div class="cluster-pickup">
+              Relay: <b>${escapeHtml(pickupLabel)}</b>
+            </div>
+            ${breakdown ? `<div class="cluster-breakdown">${breakdown}</div>` : ''}
+            <div class="cluster-passengers">
+              ${c.members.map(m => {
+                const pItems = itemsOf(m);
+                const pSummary = luggageSummary(m);
+                return `
+                  <div class="passenger">
+                    <div class="passenger-top">
+                      <span class="passenger-name">${escapeHtml(m.name)}${m.neighborhood ? ` <span style="color:var(--text-faint);">· ${escapeHtml(m.neighborhood)}</span>` : ''}</span>
+                      <span class="passenger-phone">${escapeHtml(m.phone)}</span>
+                    </div>
+                    ${pItems > 0 ? `<div class="passenger-luggage">${pSummary}</div>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      root.querySelectorAll('.cluster-card').forEach(card => {
+        card.addEventListener('click', () => {
+          card.classList.toggle('open');
+          const idx = parseInt(card.dataset.idx, 10);
+          const c = clusters[idx];
+          map.setView([c.centroid.lat, c.centroid.lng], 13);
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // EXPORT
+    // ─────────────────────────────────────────────────────────────────────────
+    function exportCSV() {
+      if (clusters.length === 0) { alert('Nothing to export.'); return; }
+      const rows = [['Truck', 'Relay area', 'Name', 'Phone', 'Neighborhood',
+        'Small bags', 'Medium bags', 'Large bags', 'Monitors',
+        'Small fridges', 'Medium fridges', 'Other', 'Other description',
+        'Total items', 'Estimated volume (L)', 'Lat', 'Lng']];
+      clusters.forEach(c => {
+        c.members.forEach(m => {
+          const l = luggageOf(m);
+          rows.push([
+            c.name,
+            c.placeName || '',
+            m.name,
+            m.phone,
+            m.neighborhood || '',
+            l.smallBags,
+            l.mediumBags,
+            l.largeBags,
+            l.monitors,
+            l.smallFridges,
+            l.mediumFridges,
+            l.other,
+            (m.luggage && m.luggage.otherDescription) || '',
+            itemsOf(m),
+            volumeOf(m),
+            m.lat.toFixed(6),
+            m.lng.toFixed(6),
+          ]);
+        });
+      });
+      const csv = rows.map(r =>
+        r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `luggage-dispatch-${EVENT_LABEL}-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // EVENT WIRING
+    // ─────────────────────────────────────────────────────────────────────────
+    document.getElementById('k-slider').addEventListener('input', e => {
+      document.getElementById('k-value').textContent = e.target.value;
+    });
+    document.getElementById('k-slider').addEventListener('change', () => runClustering(false));
+    document.getElementById('capacity').addEventListener('change', () => runClustering(true));
+    document.getElementById('recluster-btn').addEventListener('click', () => runClustering(false));
+    document.getElementById('refresh-btn').addEventListener('click', () => loadSignups(true));
+    document.getElementById('export-btn').addEventListener('click', exportCSV);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AUTH GATE
+    // ─────────────────────────────────────────────────────────────────────────
+    // SHA-256 hash of the passphrase — change PASS_HASH when you change the password.
+    // To generate a new hash: crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
+    //   .then(b => Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join(''))
+    const PASS_HASH = 'fb8fe49fd955b819e6e2e18e4e99ee2a7466dfd3eeea69be28452b8fff8d4b2b';
+
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function tryAuth() {
+      const input = document.getElementById('auth-input');
+      const hash = await sha256(input.value);
+      if (hash === PASS_HASH) {
+        sessionStorage.setItem('dispatch-auth', 'ok');
+        unlockDashboard();
+      } else {
+        document.getElementById('auth-error').classList.add('show');
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    function unlockDashboard() {
+      document.getElementById('auth-gate').classList.add('hidden');
+      document.getElementById('app').style.display = '';
+      map.invalidateSize();
+      loadSignups(false);
+      setInterval(() => loadSignups(true), 30000);
+    }
+
+    document.getElementById('auth-btn').addEventListener('click', tryAuth);
+    document.getElementById('auth-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryAuth();
+    });
+
+    // Skip gate if already authed this session
+    if (sessionStorage.getItem('dispatch-auth') === 'ok') {
+      unlockDashboard();
+    } else {
+      document.getElementById('auth-input').focus();
+    }
+  </script>
+</body>
+</html>
