@@ -820,7 +820,7 @@
     // ─────────────────────────────────────────────────────────────────────────
     // CONFIG — edit these for each event
     // ─────────────────────────────────────────────────────────────────────────
-    const CONVEX_URL = 'https://accurate-stoat-455.eu-west-1.convex.cloud';
+    const CONVEX_URL = 'https://fortunate-skunk-333.eu-west-1.convex.cloud';
     const EVENT_LABEL = 'daust-impact-2026'; // change per event
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -1176,7 +1176,7 @@
       } catch (err) {
         btn.disabled = false;
         btn.textContent = 'Confirmer ma demande';
-        showError('Erreur de connexion. Vérifiez votre réseau et réessayez.');
+        showError(err.message || 'Erreur de connexion. Vérifiez votre réseau et réessayez.');
         console.error(err);
       }
     });
