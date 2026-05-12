@@ -517,6 +517,33 @@
       text-align: center;
     }
 
+    /* PICKUP TIMING */
+    .pickup-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pickup-option input { display: none; }
+    .pickup-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 12px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: var(--card);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .pickup-card:hover { border-color: var(--terra); }
+    .pickup-option input:checked + .pickup-card {
+      border-color: var(--terra);
+      background: rgba(199,111,82,0.12);
+    }
+    .pickup-icon { font-size: 28px; }
+    .pickup-label { font-weight: 600; font-size: 14px; }
+
     /* SUBMIT */
     .submit {
       width: 100%;
@@ -800,6 +827,27 @@
         <div class="luggage-total" id="luggage-total">Total : 0 article</div>
       </div>
 
+      <!-- Step 4: Pickup timing -->
+      <div class="card">
+        <div class="step"><span class="step-num">04</span>When do you need pickup?</div>
+        <div class="pickup-options">
+          <label class="pickup-option">
+            <input type="radio" name="pickupTime" value="this-weekend" />
+            <span class="pickup-card">
+              <span class="pickup-icon">📅</span>
+              <span class="pickup-label">This weekend</span>
+            </span>
+          </label>
+          <label class="pickup-option">
+            <input type="radio" name="pickupTime" value="after-exams" />
+            <span class="pickup-card">
+              <span class="pickup-icon">📚</span>
+              <span class="pickup-label">After exams</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
       <button id="submit" class="submit" type="button">Confirmer ma demande</button>
       <div id="err" class="err-msg"></div>
     </div>
@@ -1071,6 +1119,7 @@
         otherDesc: document.getElementById('other-desc').value,
         luggageCounts,
         pickedLatLng,
+        pickupTime: document.querySelector('input[name="pickupTime"]:checked')?.value || null,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     }
@@ -1115,6 +1164,9 @@
     document.querySelectorAll('#name, #phone, #neighborhood, #other-desc').forEach(el => {
       el.addEventListener('input', saveDraft);
     });
+    document.querySelectorAll('input[name="pickupTime"]').forEach(el => {
+      el.addEventListener('change', saveDraft);
+    });
 
     // ─── RESTORE DRAFT ──────────────────────────────────────────────────
     try {
@@ -1139,6 +1191,10 @@
         }
         if (saved.pickedLatLng) {
           setPin(saved.pickedLatLng.lat, saved.pickedLatLng.lng);
+        }
+        if (saved.pickupTime) {
+          const radio = document.querySelector(`input[name="pickupTime"][value="${saved.pickupTime}"]`);
+          if (radio) radio.checked = true;
         }
       }
     } catch (_) {}
@@ -1173,6 +1229,9 @@
         return showError('Veuillez préciser le type pour la catégorie « Autre ».');
       }
 
+      const pickupTime = document.querySelector('input[name="pickupTime"]:checked')?.value;
+      if (!pickupTime) return showError('Please select when you need pickup.');
+
       const luggage = { ...luggageCounts };
       if (luggageCounts.other > 0 && otherDesc) {
         luggage.otherDescription = otherDesc;
@@ -1193,6 +1252,7 @@
               lat: pickedLatLng.lat,
               lng: pickedLatLng.lng,
               neighborhood: neighborhood || undefined,
+              pickupTime,
               luggage,
               eventLabel: EVENT_LABEL,
             },

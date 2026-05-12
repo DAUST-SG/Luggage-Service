@@ -82,6 +82,21 @@
     }
 
     .header-actions { display: flex; gap: 8px; }
+    .filter-tabs { display: flex; gap: 6px; }
+    .filter-tab {
+      padding: 6px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { border-color: var(--terra); color: var(--text); }
+    .filter-tab.active { background: var(--terra); border-color: var(--terra); color: #fff; }
     .btn {
       padding: 8px 14px;
       background: var(--surface-2);
@@ -369,6 +384,11 @@
         <div class="stat">Trucks<b id="stat-trucks">0</b></div>
         <div class="stat">Volume / truck<b id="stat-avg">0 L</b></div>
       </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="this-weekend">📅 This weekend</button>
+        <button class="filter-tab" data-filter="after-exams">📚 After exams</button>
+      </div>
       <div class="header-actions">
         <button class="btn" id="refresh-btn">↻ Refresh</button>
         <button class="btn primary" id="export-btn">↓ Export CSV</button>
@@ -469,10 +489,29 @@
     // ─────────────────────────────────────────────────────────────────────────
     // STATE
     // ─────────────────────────────────────────────────────────────────────────
+    let allSignups = [];
     let signups = [];
     let clusters = [];
     let layers = [];
     let placeNameCache = {};
+    let activeFilter = 'all';
+
+    function applyFilter() {
+      signups = activeFilter === 'all'
+        ? allSignups
+        : allSignups.filter(s => s.pickupTime === activeFilter);
+      document.getElementById('stat-total').textContent = signups.length;
+    }
+
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelector('.filter-tab.active').classList.remove('active');
+        tab.classList.add('active');
+        activeFilter = tab.dataset.filter;
+        applyFilter();
+        runClustering(false);
+      });
+    });
 
     // ─────────────────────────────────────────────────────────────────────────
     // MAP SETUP
@@ -500,8 +539,8 @@
         });
         const data = await res.json();
         if (data.status !== 'success') throw new Error(data.errorMessage || 'Query failed');
-        signups = data.value || [];
-        document.getElementById('stat-total').textContent = signups.length;
+        allSignups = data.value || [];
+        applyFilter();
         runClustering(stableInit);
       } catch (err) {
         console.error(err);

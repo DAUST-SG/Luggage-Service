@@ -9,6 +9,7 @@ export const create = mutation({
     lng: v.number(),
     neighborhood: v.optional(v.string()),
     notes: v.optional(v.string()),
+    pickupTime: v.optional(v.string()),
     eventLabel: v.optional(v.string()),
     luggage: v.optional(v.object({
       smallBags: v.number(),
