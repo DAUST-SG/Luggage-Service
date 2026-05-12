@@ -858,6 +858,7 @@
       pickedLatLng = { lat, lng };
       if (zoomTo) map.setView([lat, lng], Math.max(map.getZoom(), 14));
       updatePinStatus();
+      saveDraft();
     }
 
     function updatePinStatus() {
@@ -1061,6 +1062,20 @@
     }
 
     // ─── LUGGAGE STEPPERS ────────────────────────────────────────────────
+    const STORAGE_KEY = 'shuttle-signup-draft';
+    function saveDraft() {
+      const draft = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        neighborhood: document.getElementById('neighborhood').value,
+        otherDesc: document.getElementById('other-desc').value,
+        luggageCounts,
+        pickedLatLng,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    }
+    function clearDraft() { localStorage.removeItem(STORAGE_KEY); }
+
     const luggageCounts = { smallBags: 0, mediumBags: 0, largeBags: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
 
     document.querySelectorAll('.luggage-row').forEach(row => {
@@ -1073,6 +1088,7 @@
           luggageCounts[key] = next;
           updateStepperRow(row, next);
           updateLuggageTotal();
+          saveDraft();
           if (key === 'other') {
             document.getElementById('other-desc-wrap').style.display = next > 0 ? '' : 'none';
           }
@@ -1095,6 +1111,37 @@
       document.getElementById('luggage-total').textContent =
         `Total : ${total} article${total !== 1 ? 's' : ''}`;
     }
+
+    document.querySelectorAll('#name, #phone, #neighborhood, #other-desc').forEach(el => {
+      el.addEventListener('input', saveDraft);
+    });
+
+    // ─── RESTORE DRAFT ──────────────────────────────────────────────────
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (saved) {
+        if (saved.name) document.getElementById('name').value = saved.name;
+        if (saved.phone) document.getElementById('phone').value = saved.phone;
+        if (saved.neighborhood) document.getElementById('neighborhood').value = saved.neighborhood;
+        if (saved.otherDesc) document.getElementById('other-desc').value = saved.otherDesc;
+        if (saved.luggageCounts) {
+          for (const [key, val] of Object.entries(saved.luggageCounts)) {
+            if (val > 0) {
+              luggageCounts[key] = val;
+              const row = document.querySelector(`.luggage-row[data-key="${key}"]`);
+              if (row) updateStepperRow(row, val);
+            }
+          }
+          updateLuggageTotal();
+          if (luggageCounts.other > 0) {
+            document.getElementById('other-desc-wrap').style.display = '';
+          }
+        }
+        if (saved.pickedLatLng) {
+          setPin(saved.pickedLatLng.lat, saved.pickedLatLng.lng);
+        }
+      }
+    } catch (_) {}
 
     // ─── VALIDATION + SUBMISSION ─────────────────────────────────────────
     function showError(msg) {
@@ -1161,6 +1208,7 @@
           .map(x => `${x.emoji} ${luggageCounts[x.key]}`)
           .join(' · ');
 
+        saveDraft();
         document.getElementById('form-state').style.display = 'none';
         document.getElementById('success-state').classList.add('show');
         document.getElementById('success-recap').innerHTML = `
