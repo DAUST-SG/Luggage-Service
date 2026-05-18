@@ -520,7 +520,7 @@
     /* PICKUP TIMING */
     .pickup-options {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 12px;
     }
     .pickup-option input { display: none; }
@@ -865,17 +865,24 @@
         <div class="step"><span class="step-num">04</span>When do you need pickup?</div>
         <div class="pickup-options">
           <label class="pickup-option">
-            <input type="radio" name="pickupTime" value="this-weekend" />
+            <input type="radio" name="pickupTime" value="friday-may-22" />
             <span class="pickup-card">
               <span class="pickup-icon">📅</span>
-              <span class="pickup-label">This weekend</span>
+              <span class="pickup-label">Friday May 22</span>
             </span>
           </label>
           <label class="pickup-option">
-            <input type="radio" name="pickupTime" value="after-exams" />
+            <input type="radio" name="pickupTime" value="sunday-may-24" />
             <span class="pickup-card">
-              <span class="pickup-icon">📚</span>
-              <span class="pickup-label">After exams</span>
+              <span class="pickup-icon">📅</span>
+              <span class="pickup-label">Sunday May 24</span>
+            </span>
+          </label>
+          <label class="pickup-option">
+            <input type="radio" name="pickupTime" value="monday-may-25" />
+            <span class="pickup-card">
+              <span class="pickup-icon">📅</span>
+              <span class="pickup-label">Monday May 25</span>
             </span>
           </label>
         </div>
