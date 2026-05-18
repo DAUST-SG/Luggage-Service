@@ -383,6 +383,7 @@
         <div class="stat">Signups<b id="stat-total">0</b></div>
         <div class="stat">Trucks<b id="stat-trucks">0</b></div>
         <div class="stat">Volume / truck<b id="stat-avg">0 L</b></div>
+        <div class="stat">Revenue<b id="stat-revenue">0 FCFA</b></div>
       </div>
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">All</button>
@@ -446,24 +447,75 @@
       smallBags: 25,
       mediumBags: 55,
       largeBags: 90,
+      smallSuitcase: 35,
+      mediumSuitcase: 60,
+      bigSuitcase: 90,
       monitors: 40,
       smallFridges: 80,
       mediumFridges: 200,
       other: 35,
     };
 
+    const PRICES_FCFA = {
+      smallBags: 1000,
+      mediumBags: 1500,
+      smallSuitcase: 1500,
+      mediumSuitcase: 2000,
+      bigSuitcase: 2500,
+      monitors: 3000,
+      smallFridges: 2000,
+      mediumFridges: 4000,
+      other: 1500,
+    };
+
+    function calculatePrice(luggage) {
+      const subtotal =
+        (luggage.smallBags || 0) * PRICES_FCFA.smallBags +
+        (luggage.mediumBags || 0) * PRICES_FCFA.mediumBags +
+        (luggage.smallSuitcase || 0) * PRICES_FCFA.smallSuitcase +
+        (luggage.mediumSuitcase || 0) * PRICES_FCFA.mediumSuitcase +
+        (luggage.bigSuitcase || 0) * PRICES_FCFA.bigSuitcase +
+        (luggage.monitors || 0) * PRICES_FCFA.monitors +
+        (luggage.smallFridges || 0) * PRICES_FCFA.smallFridges +
+        (luggage.mediumFridges || 0) * PRICES_FCFA.mediumFridges +
+        (luggage.other || 0) * PRICES_FCFA.other;
+
+      const itemCount =
+        (luggage.smallBags || 0) + (luggage.mediumBags || 0) +
+        (luggage.smallSuitcase || 0) + (luggage.mediumSuitcase || 0) +
+        (luggage.bigSuitcase || 0) + (luggage.monitors || 0) +
+        (luggage.smallFridges || 0) + (luggage.mediumFridges || 0) +
+        (luggage.other || 0);
+
+      let discountPercent = 0;
+      if (itemCount >= 5) discountPercent = 20;
+
+      const discount = subtotal * (discountPercent / 100);
+      const total = subtotal - discount;
+
+      return { subtotal, itemCount, discountPercent, discount, total };
+    }
+
+    function memberPrice(m) {
+      if (m.finalPrice != null) return m.finalPrice;
+      return Math.round(calculatePrice(luggageOf(m)).total);
+    }
+
     const LUGGAGE_DISPLAY = [
-      { key: 'smallBags',     emoji: '🎒' },
-      { key: 'mediumBags',    emoji: '🧳' },
-      { key: 'largeBags',     emoji: '🛄' },
-      { key: 'monitors',      emoji: '🖥️' },
-      { key: 'smallFridges',  emoji: '🧊' },
-      { key: 'mediumFridges', emoji: '❄️' },
-      { key: 'other',         emoji: '📦' },
+      { key: 'smallBags',      emoji: '🎒' },
+      { key: 'mediumBags',     emoji: '🧳' },
+      { key: 'smallSuitcase',  emoji: '🧳' },
+      { key: 'mediumSuitcase', emoji: '🛄' },
+      { key: 'bigSuitcase',    emoji: '🛄' },
+      { key: 'largeBags',      emoji: '🛄' },
+      { key: 'monitors',       emoji: '🖥️' },
+      { key: 'smallFridges',   emoji: '🧊' },
+      { key: 'mediumFridges',  emoji: '❄️' },
+      { key: 'other',          emoji: '📦' },
     ];
 
     function emptyLuggage() {
-      return { smallBags: 0, mediumBags: 0, largeBags: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
+      return { smallBags: 0, mediumBags: 0, largeBags: 0, smallSuitcase: 0, mediumSuitcase: 0, bigSuitcase: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
     }
     function luggageOf(m) { return { ...emptyLuggage(), ...(m.luggage || {}) }; }
     function itemsOf(m)   { const l = luggageOf(m); return LUGGAGE_DISPLAY.reduce((s, x) => s + l[x.key], 0); }
@@ -684,6 +736,12 @@
         ? formatVolume(Math.round(totalVolume / clusters.length))
         : '0 L';
 
+      const totalRevenue = clusters.reduce((sum, c) =>
+        sum + c.members.reduce((s, m) => s + memberPrice(m), 0), 0
+      );
+      document.getElementById('stat-revenue').textContent =
+        totalRevenue.toLocaleString() + ' FCFA';
+
       render();
       lookupPlaceNames();
     }
@@ -811,6 +869,9 @@
           .filter(Boolean)
           .join('   ');
 
+        const clusterPrice = c.members.reduce((s, m) => s + memberPrice(m), 0);
+        const avgPrice = c.members.length > 0 ? clusterPrice / c.members.length : 0;
+
         return `
           <div class="cluster-card ${over ? 'warn' : ''}" data-idx="${i}">
             <div class="cluster-head">
@@ -822,17 +883,22 @@
               Relay: <b>${escapeHtml(pickupLabel)}</b>
             </div>
             ${breakdown ? `<div class="cluster-breakdown">${breakdown}</div>` : ''}
+            <div style="margin-top: 6px; font-size: 13px; color: var(--text-dim);">
+              Revenue: <b style="color: var(--text);">${clusterPrice.toLocaleString()} FCFA</b>
+              (${Math.round(avgPrice).toLocaleString()} FCFA/person)
+            </div>
             <div class="cluster-passengers">
               ${c.members.map(m => {
                 const pItems = itemsOf(m);
                 const pSummary = luggageSummary(m);
+                const pPrice = memberPrice(m);
                 return `
                   <div class="passenger">
                     <div class="passenger-top">
                       <span class="passenger-name">${escapeHtml(m.name)}${m.neighborhood ? ` <span style="color:var(--text-faint);">· ${escapeHtml(m.neighborhood)}</span>` : ''}</span>
                       <span class="passenger-phone">${escapeHtml(m.phone)}</span>
                     </div>
-                    ${pItems > 0 ? `<div class="passenger-luggage">${pSummary}</div>` : ''}
+                    ${pItems > 0 ? `<div class="passenger-luggage" style="display:flex;justify-content:space-between;align-items:center;">${pSummary}<span style="color:var(--text);font-weight:600;">${pPrice.toLocaleString()} FCFA</span></div>` : ''}
                   </div>
                 `;
               }).join('')}
@@ -863,12 +929,15 @@
     function exportCSV() {
       if (clusters.length === 0) { alert('Nothing to export.'); return; }
       const rows = [['Truck', 'Relay area', 'Name', 'Phone', 'Neighborhood',
-        'Small bags', 'Medium bags', 'Large bags', 'Monitors',
-        'Small fridges', 'Medium fridges', 'Other', 'Other description',
-        'Total items', 'Estimated volume (L)', 'Lat', 'Lng']];
+        'Small bags', 'Medium bags', 'Small suitcase', 'Medium suitcase', 'Large suitcase',
+        'Monitors', 'Small fridges', 'Medium fridges', 'Other', 'Other description',
+        'Total items', 'Estimated volume (L)',
+        'Subtotal (FCFA)', 'Discount %', 'Discount amount (FCFA)', 'Final price (FCFA)',
+        'Lat', 'Lng']];
       clusters.forEach(c => {
         c.members.forEach(m => {
           const l = luggageOf(m);
+          const bp = m.priceBreakdown || {};
           rows.push([
             c.name,
             c.placeName || '',
@@ -877,7 +946,9 @@
             m.neighborhood || '',
             l.smallBags,
             l.mediumBags,
-            l.largeBags,
+            l.smallSuitcase || 0,
+            l.mediumSuitcase || 0,
+            l.bigSuitcase || 0,
             l.monitors,
             l.smallFridges,
             l.mediumFridges,
@@ -885,6 +956,10 @@
             (m.luggage && m.luggage.otherDescription) || '',
             itemsOf(m),
             volumeOf(m),
+            bp.subtotal || '',
+            (bp.discountPercent || 0) + '%',
+            Math.round(bp.discountAmount || 0),
+            memberPrice(m),
             m.lat.toFixed(6),
             m.lng.toFixed(6),
           ]);

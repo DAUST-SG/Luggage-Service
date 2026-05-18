@@ -15,11 +15,20 @@ export default defineSchema({
       smallBags: v.number(),
       mediumBags: v.number(),
       largeBags: v.number(),
+      smallSuitcase: v.optional(v.number()),
+      mediumSuitcase: v.optional(v.number()),
+      bigSuitcase: v.optional(v.number()),
       monitors: v.number(),
       smallFridges: v.number(),
       mediumFridges: v.number(),
       other: v.number(),
       otherDescription: v.optional(v.string()),
+    })),
+    finalPrice: v.optional(v.number()),
+    priceBreakdown: v.optional(v.object({
+      subtotal: v.number(),
+      discountPercent: v.number(),
+      discountAmount: v.number(),
     })),
   })
     .index("by_event", ["eventLabel"])

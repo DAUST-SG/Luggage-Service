@@ -755,7 +755,7 @@
         <div class="luggage-group-label">Bags</div>
         <div class="luggage-row" data-key="smallBags">
           <span class="luggage-emoji">🎒</span>
-          <span class="luggage-label">Small bag / suitcase</span>
+          <span class="luggage-label">Small bag <span style="color:var(--ink-soft);font-size:12px;">· 1,000 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -764,16 +764,36 @@
         </div>
         <div class="luggage-row" data-key="mediumBags">
           <span class="luggage-emoji">🧳</span>
-          <span class="luggage-label">Medium bag / suitcase</span>
+          <span class="luggage-label">Medium bag <span style="color:var(--ink-soft);font-size:12px;">· 1,500 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
             <button class="stepper-btn" type="button" data-dir="1">+</button>
           </div>
         </div>
-        <div class="luggage-row" data-key="largeBags">
+
+        <div class="luggage-group-label">Suitcases</div>
+        <div class="luggage-row" data-key="smallSuitcase">
+          <span class="luggage-emoji">🧳</span>
+          <span class="luggage-label">Small suitcase <span style="color:var(--ink-soft);font-size:12px;">· 1,500 FCFA</span></span>
+          <div class="stepper">
+            <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
+            <span class="stepper-count">0</span>
+            <button class="stepper-btn" type="button" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="luggage-row" data-key="mediumSuitcase">
           <span class="luggage-emoji">🛄</span>
-          <span class="luggage-label">Large suitcase</span>
+          <span class="luggage-label">Medium suitcase <span style="color:var(--ink-soft);font-size:12px;">· 2,000 FCFA</span></span>
+          <div class="stepper">
+            <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
+            <span class="stepper-count">0</span>
+            <button class="stepper-btn" type="button" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="luggage-row" data-key="bigSuitcase">
+          <span class="luggage-emoji">🛄</span>
+          <span class="luggage-label">Large suitcase <span style="color:var(--ink-soft);font-size:12px;">· 2,500 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -784,7 +804,7 @@
         <div class="luggage-group-label">Appliances</div>
         <div class="luggage-row" data-key="monitors">
           <span class="luggage-emoji">🖥️</span>
-          <span class="luggage-label">Screen / monitor</span>
+          <span class="luggage-label">Screen / monitor <span style="color:var(--ink-soft);font-size:12px;">· 3,000 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -793,7 +813,7 @@
         </div>
         <div class="luggage-row" data-key="smallFridges">
           <span class="luggage-emoji">🧊</span>
-          <span class="luggage-label">Small fridge</span>
+          <span class="luggage-label">Small fridge <span style="color:var(--ink-soft);font-size:12px;">· 2,000 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -802,7 +822,7 @@
         </div>
         <div class="luggage-row" data-key="mediumFridges">
           <span class="luggage-emoji">❄️</span>
-          <span class="luggage-label">Medium fridge</span>
+          <span class="luggage-label">Medium fridge <span style="color:var(--ink-soft);font-size:12px;">· 4,000 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -810,10 +830,10 @@
           </div>
         </div>
 
-        <div class="luggage-group-label">Autre</div>
+        <div class="luggage-group-label">Other</div>
         <div class="luggage-row" data-key="other">
           <span class="luggage-emoji">📦</span>
-          <span class="luggage-label">Autre</span>
+          <span class="luggage-label">Other <span style="color:var(--ink-soft);font-size:12px;">· 1,500 FCFA</span></span>
           <div class="stepper">
             <button class="stepper-btn disabled" type="button" data-dir="-1">−</button>
             <span class="stepper-count">0</span>
@@ -821,10 +841,23 @@
           </div>
         </div>
         <div class="other-desc-wrap" id="other-desc-wrap" style="display:none;">
-          <input id="other-desc" type="text" placeholder="Précisez le type : ex. tapis, instrument, paquet fragile…" />
+          <input id="other-desc" type="text" placeholder="Describe: e.g. carpet, instrument, fragile package…" />
         </div>
 
-        <div class="luggage-total" id="luggage-total">Total : 0 article</div>
+        <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>Subtotal</span>
+            <span id="price-subtotal" style="font-weight: 600;">0 FCFA</span>
+          </div>
+          <div id="price-discount-row" style="display: none; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--ink-soft);">Discount (5+ items)</span>
+            <span id="price-discount" style="font-weight: 600; color: var(--ok);">−0 FCFA</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-top: 6px; border-top: 1px solid var(--line); font-size: 16px;">
+            <span style="font-weight: 600;">Total</span>
+            <span id="price-total" style="font-weight: 700; color: var(--terra); font-size: 18px;">0 FCFA</span>
+          </div>
+        </div>
       </div>
 
       <!-- Step 4: Pickup timing -->
@@ -872,13 +905,55 @@
     const EVENT_LABEL = 'daust-impact-2026'; // change per event
     // ─────────────────────────────────────────────────────────────────────────
 
+    const PRICES_FCFA = {
+      smallBags: 1000,
+      mediumBags: 1500,
+      smallSuitcase: 1500,
+      mediumSuitcase: 2000,
+      bigSuitcase: 2500,
+      monitors: 3000,
+      smallFridges: 2000,
+      mediumFridges: 4000,
+      other: 1500,
+    };
+
+    function calculatePrice(luggage) {
+      const subtotal =
+        (luggage.smallBags || 0) * PRICES_FCFA.smallBags +
+        (luggage.mediumBags || 0) * PRICES_FCFA.mediumBags +
+        (luggage.smallSuitcase || 0) * PRICES_FCFA.smallSuitcase +
+        (luggage.mediumSuitcase || 0) * PRICES_FCFA.mediumSuitcase +
+        (luggage.bigSuitcase || 0) * PRICES_FCFA.bigSuitcase +
+        (luggage.monitors || 0) * PRICES_FCFA.monitors +
+        (luggage.smallFridges || 0) * PRICES_FCFA.smallFridges +
+        (luggage.mediumFridges || 0) * PRICES_FCFA.mediumFridges +
+        (luggage.other || 0) * PRICES_FCFA.other;
+
+      const itemCount =
+        (luggage.smallBags || 0) + (luggage.mediumBags || 0) +
+        (luggage.smallSuitcase || 0) + (luggage.mediumSuitcase || 0) +
+        (luggage.bigSuitcase || 0) + (luggage.monitors || 0) +
+        (luggage.smallFridges || 0) + (luggage.mediumFridges || 0) +
+        (luggage.other || 0);
+
+      let discountPercent = 0;
+      if (itemCount >= 5) discountPercent = 20;
+
+      const discount = subtotal * (discountPercent / 100);
+      const total = subtotal - discount;
+
+      return { subtotal, itemCount, discountPercent, discount, total };
+    }
+
     const LUGGAGE_DISPLAY = [
       { key: 'smallBags', emoji: '🎒' },
       { key: 'mediumBags', emoji: '🧳' },
-      { key: 'largeBags', emoji: '🛄' },
+      { key: 'smallSuitcase', emoji: '🧳' },
+      { key: 'mediumSuitcase', emoji: '🛄' },
+      { key: 'bigSuitcase', emoji: '🛄' },
       { key: 'monitors', emoji: '🖥️' },
-      { key: 'smallFridges', emoji: '' },
-      { key: 'mediumFridges', emoji: '' },
+      { key: 'smallFridges', emoji: '🧊' },
+      { key: 'mediumFridges', emoji: '❄️' },
       { key: 'other', emoji: '📦' },
     ];
 
@@ -1125,7 +1200,7 @@
     }
     function clearDraft() { localStorage.removeItem(STORAGE_KEY); }
 
-    const luggageCounts = { smallBags: 0, mediumBags: 0, largeBags: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
+    const luggageCounts = { smallBags: 0, mediumBags: 0, smallSuitcase: 0, mediumSuitcase: 0, bigSuitcase: 0, monitors: 0, smallFridges: 0, mediumFridges: 0, other: 0 };
 
     document.querySelectorAll('.luggage-row').forEach(row => {
       const key = row.dataset.key;
@@ -1136,7 +1211,7 @@
           if (next < 0 || next > 20) return;
           luggageCounts[key] = next;
           updateStepperRow(row, next);
-          updateLuggageTotal();
+          updatePriceDisplay();
           saveDraft();
           if (key === 'other') {
             document.getElementById('other-desc-wrap').style.display = next > 0 ? '' : 'none';
@@ -1155,10 +1230,22 @@
       else plusBtn.classList.remove('disabled');
     }
 
-    function updateLuggageTotal() {
-      const total = Object.values(luggageCounts).reduce((a, b) => a + b, 0);
-      document.getElementById('luggage-total').textContent =
-        `Total : ${total} article${total !== 1 ? 's' : ''}`;
+    function updatePriceDisplay() {
+      const pricing = calculatePrice(luggageCounts);
+      document.getElementById('price-subtotal').textContent =
+        pricing.subtotal.toLocaleString() + ' FCFA';
+
+      const discountRow = document.getElementById('price-discount-row');
+      if (pricing.discountPercent > 0) {
+        discountRow.style.display = 'flex';
+        document.getElementById('price-discount').textContent =
+          '−' + Math.round(pricing.discount).toLocaleString() + ' FCFA';
+      } else {
+        discountRow.style.display = 'none';
+      }
+
+      document.getElementById('price-total').textContent =
+        Math.round(pricing.total).toLocaleString() + ' FCFA';
     }
 
     document.querySelectorAll('#name, #phone, #neighborhood, #other-desc').forEach(el => {
@@ -1184,7 +1271,7 @@
               if (row) updateStepperRow(row, val);
             }
           }
-          updateLuggageTotal();
+          updatePriceDisplay();
           if (luggageCounts.other > 0) {
             document.getElementById('other-desc-wrap').style.display = '';
           }
@@ -1232,10 +1319,12 @@
       const pickupTime = document.querySelector('input[name="pickupTime"]:checked')?.value;
       if (!pickupTime) return showError('Please select when you need pickup.');
 
-      const luggage = { ...luggageCounts };
+      const luggage = { ...luggageCounts, largeBags: 0 };
       if (luggageCounts.other > 0 && otherDesc) {
         luggage.otherDescription = otherDesc;
       }
+
+      const pricing = calculatePrice(luggageCounts);
 
       const btn = document.getElementById('submit');
       btn.disabled = true;
@@ -1254,6 +1343,12 @@
               neighborhood: neighborhood || undefined,
               pickupTime,
               luggage,
+              finalPrice: Math.round(pricing.total),
+              priceBreakdown: {
+                subtotal: pricing.subtotal,
+                discountPercent: pricing.discountPercent,
+                discountAmount: Math.round(pricing.discount),
+              },
               eventLabel: EVENT_LABEL,
             },
             format: 'json',
@@ -1272,13 +1367,15 @@
         document.getElementById('form-state').style.display = 'none';
         document.getElementById('success-state').classList.add('show');
         document.getElementById('success-recap').innerHTML = `
-          <div><b>Nom :</b> ${escapeHtml(name)}</div>
-          <div><b>Téléphone :</b> ${escapeHtml(phone)}</div>
-          ${neighborhood ? `<div><b>Quartier :</b> ${escapeHtml(neighborhood)}</div>` : ''}
-          <div><b>Coordonnées :</b> ${pickedLatLng.lat.toFixed(5)}, ${pickedLatLng.lng.toFixed(5)}</div>
-          <div><b>Bagages :</b> ${luggageLine}  (${totalItems} article${totalItems !== 1 ? 's' : ''})</div>
-          ${luggageCounts.other > 0 && otherDesc ? `<div style="margin-left:0;color:var(--ink-soft);font-size:13px;">· Autre : "${escapeHtml(otherDesc)}"</div>` : ''}
-          ${data.value && data.value.updated ? '<div style="margin-top:8px;color:var(--ink-soft);font-size:13px;">Demande précédente mise à jour.</div>' : ''}
+          <div><b>Name:</b> ${escapeHtml(name)}</div>
+          <div><b>Phone:</b> ${escapeHtml(phone)}</div>
+          ${neighborhood ? `<div><b>Neighborhood:</b> ${escapeHtml(neighborhood)}</div>` : ''}
+          <div><b>Coordinates:</b> ${pickedLatLng.lat.toFixed(5)}, ${pickedLatLng.lng.toFixed(5)}</div>
+          <div><b>Luggage:</b> ${luggageLine}  (${totalItems} item${totalItems !== 1 ? 's' : ''})</div>
+          ${luggageCounts.other > 0 && otherDesc ? `<div style="margin-left:0;color:var(--ink-soft);font-size:13px;">· Other: "${escapeHtml(otherDesc)}"</div>` : ''}
+          <div style="margin-top:8px;"><b>Total price:</b> ${pricing.total.toLocaleString()} FCFA</div>
+          ${pricing.discountPercent > 0 ? `<div style="color: var(--ok); font-size: 13px;">20% discount applied (${pricing.itemCount} items)</div>` : ''}
+          ${data.value && data.value.updated ? '<div style="margin-top:8px;color:var(--ink-soft);font-size:13px;">Previous submission updated.</div>' : ''}
         `;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (err) {
